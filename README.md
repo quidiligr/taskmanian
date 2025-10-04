@@ -105,4 +105,4 @@ MIT License — see [LICENSE](LICENSE) file.
 
 ## Maintainer
 **Romulo Quidilig**  
-XoftTel / Peerlink
+rquidilig@gmail.com
