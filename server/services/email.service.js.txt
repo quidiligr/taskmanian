@@ -1,0 +1,244 @@
+"use strict";
+//const nodemailer = require('nodemailer');
+const smtpTransport = require('nodemailer-smtp-transport');
+//const config = require('../common/config/config')
+//const myutils =  require('../common/services/myutils.service')
+//const monk = require('monk');
+//const db = monk(config.kMongoDb)
+//const emaillogsTable = db.get('emaillogs') 
+//const contactusTable = db.get('contactus') 
+
+const nodemailer = require("nodemailer");
+const util = require('util');
+
+
+   // const prom = util.promisify(transporter.sendMail)
+//util.promisify(req.files.photo.mv)
+// async..await is not allowed in global scope, must use a wrapper
+//console.log(`\r\n12: req.body = ${JSON.stringify(req.body)}\n`)
+    /*
+    var auth = {
+        user: 'youremail@gmail.com',
+        pass: 'yourpassword'
+      }
+
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'youremail@gmail.com',
+          pass: 'yourpassword'
+        }
+      });
+      
+      var mailOptions = {
+        from: 'youremail@gmail.com',
+        to: 'myfriend@yahoo.com',
+        subject: 'Sending Email using Node.js',
+        text: 'That was easy!'
+      };
+      
+      transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+          console.log(error);
+        } else {
+          console.log('Email sent: ' + info.response);
+        }
+      });
+      */
+exports.send = async function(mail) {
+    try{
+        // Generate test SMTP service account from ethereal.email
+        // Only needed if you don't have a real mail account for testing
+        //let testAccount = await nodemailer.createTestAccount();
+        //let auth = {user: 'admin@sharecle.com', // generated ethereal user
+        //pass: 'Romthegreat1', // generated ethereal password
+        //}
+        // create reusable transporter object using the default SMTP transport
+/*
+        let transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: "testingtestingone1",
+              pass: "Testingtestingone1!" 
+            }
+          });
+*/
+          //console.log(`+++++ 53: email.service.js transporter= ${JSON.stringify(transporter)}`);
+          
+  /*
+        let transporter = nodemailer.createTransport({
+        host: "mail2.sharecle.com",//"smtp.ethereal.email",
+        port: 587,
+        secure: false,//false, // true for 465, false for other ports
+        
+        
+        auth:auth
+        });
+*/
+        console.log(`+++++ 54: email.service.js`);
+
+        // send mail with defined transport object
+        /*
+        let info = await transporter.sendMail({
+        from: '"Fred Foo 👻" <foo@example.com>', // sender address
+        to: "bar@example.com, baz@example.com", // list of receivers
+        subject: "Hello ✔", // Subject line
+        text: "Hello world?", // plain text body
+        html: "<b>Hello world?</b>", // html body
+        });
+        */
+        let info = await transporter.sendMail(mail);
+
+        //console.log("+++++ 67: email.service.js Message sent: %s", info.messageId);
+        console.log(`+++++ 67: email.service.js Message sent: info= ${JSON.stringify(info)}`);
+        // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+
+        // Preview only available when sending through an Ethereal account
+        //console.log("+++++ 67: email.service.js Preview URL: %s", nodemailer.getTestMessageUrl(info));
+        // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+        return {status:200}
+
+    }
+    catch(err){
+        console.log(`!!!!! 77: email.service.js err= ${JSON.stringify(err.stack)}`)
+        return{status:400}
+    }
+}
+
+exports.send2_dep = async function(mailInfo){
+  console.log('115: START exports.send2()')
+  console.log(`115: mailInfo=${JSON.stringify(mailInfo,null,4)}`)
+  
+
+  var nodemailer = require('nodemailer');
+  var smtpTransport = require('nodemailer-smtp-transport');
+  
+try{
+  var transporter = nodemailer.createTransport(smtpTransport ({
+    //host: 'mail.prsdoctors.com',
+    host: 'mail',
+    secureConnection: true,
+    port: 587,
+    auth: {
+          user: 'admin2@physicianreviewservices.com',
+          pass: 'Liam0218!'
+    }
+  }));
+
+  var mailOptions = {
+      from: mailInfo.from, //'Admin <admin@sharecle.com>',
+      to: 'rquidilig@gmail.com',//mailInfo.to,//'rquidilig@gmail.com',
+      subject: mailInfo.subject, //'This is a test ',
+          text: mailInfo.text, //'Hello world ',
+          html: mailInfo.html,//'<b>Hello world </b>',
+          tls: {
+              rejectUnauthorized: false
+          },
+      };
+    
+
+  /*
+  transporter.sendMail(mailOptions, function(error, info){
+      if(error){
+        console.log(error);
+        return {status:400}
+      }else{
+      console.log('Message sent: ' + info.response);
+      return {status:200}
+      }
+  });
+  */
+
+  let emailog = {
+    date:myutils.currentDateISO(),
+    status:0,
+    error:'',
+    to:mailInfo.to,
+    from:mailInfo.from,
+    subject:mailInfo.subject
+  }
+
+      //var bc = util.promisify(transporter.sendMail)//util.promisify(req.files.photo.mv)
+      let result = await transporter.sendMail(mailOptions)
+      //let result = await bc.sendMail(mailOptions)
+      console.log(`exports.send2() result= ${JSON.stringify(result)}`)
+      if(result.error){
+          console.log(`115: exports.send2()  ${result.error}`);
+          emailog.status =400
+          emailog.error = JSON.stringify(result.error)
+          await emaillogsTable.insert(emailog)
+          return {statusCode:400}
+      }else{
+      //console.log('Message sent: ' + result.info.response);
+      console.log('115: exports.send2()  Message sent: ');
+      emailog.status = 200
+      await emaillogsTable.insert(emailog)
+      return {statusCode:200}
+      }
+    }
+    catch(err){
+      console.log(`+++++115: exports.send2()  ${JSON.stringify(err.stack)}`)
+      
+     
+
+  }
+  console.log(`115: exports.send2() FAILED!!!`);
+  return {statusCode:500}
+}
+
+
+exports.send2 = async function(mailInfo){
+
+  var nodemailer = require('nodemailer');
+var smtpTransport = require('nodemailer-smtp-transport');
+
+var transporter = nodemailer.createTransport(smtpTransport ({
+  host: 'mail3.sharecle.com',
+  //added in the /etc/localhosts
+  //host: 'mail', 
+  
+  secureConnection: true,
+  port: 587,
+  //port: 25,
+  auth: {
+        user: 'admin@taskmanian.com',
+        pass: 'Rom@Taskmanian.com!'
+  }
+}));
+
+
+  
+  var mailOptions = {
+    from: mailInfo.from, //'Admin <admin@sharecle.com>',
+    to: mailInfo.to,//'rquidilig@gmail.com',
+    subject: mailInfo.subject, //'This is a test ',
+        text: mailInfo.text, //'Hello world ',
+        html: mailInfo.html,//'<b>Hello world </b>',
+        tls: {
+            rejectUnauthorized: false
+        },
+    };
+/*
+transporter.sendMail(mailOptions, function(error, info){
+  if(error){
+     console.log(error);
+     return {status:400}
+  }else{
+  console.log('Message sent: ' + info.response);
+  return {status:200}
+  }
+});
+*/
+  //var bc = util.promisify(transporter.sendMail)//util.promisify(req.files.photo.mv)
+  let result = await transporter.sendMail(mailOptions)
+  console.log(`send2() result= ${JSON.stringify(result)}`)
+  if(result.error){
+      console.log(`exports.send2() ${JSON.stringify(result.error)}`);
+      return {statusCode:500}
+   }else{
+   //console.log('Message sent: ' + result.info.response);
+   console.log('Message sent: ');
+   return {statusCode:200}
+   }
+}
+
